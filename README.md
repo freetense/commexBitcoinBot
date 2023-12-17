@@ -1,15 +1,15 @@
-# 🚀 Welcome to your new awesome project!
+# Бот биткоин
 
-This project has been created using **webpack-cli**, you can now run
-
+## Webpasck
 ```
-npm run build
+npm run install
 ```
-
-or
-
 ```
-yarn build
+npm run watch
 ```
 
-to bundle your application
+## Yii2
+```
+php artisan serve
+```
+
