@@ -38,7 +38,6 @@
           <Menu :settings="settings" :key="countMenu" />
           <OrderSell :buyInfoBTC="buyInfoBTC" :sell="sell" :price="price[0].price" />
           <OrderBy :buyInfoUSDT="buyInfoUSDT" :buy="buy" :price="price[0].price" />
-         <!-- <GraphProduct /> -->
         </div>
       </v-container>
     </v-main>
@@ -127,7 +126,6 @@ import {
 import 'vuetify/dist/vuetify.min.css';
 import { VueEditor } from "vue2-editor";
 import Menu from "./links/Menu.vue";
-import GraphProduct from "./links/GraphProduct.vue";
 import OrderBy from "./links/OrderBy.vue";
 import OrderSell from "./links/OrderSell.vue";
 import axios from "axios";
