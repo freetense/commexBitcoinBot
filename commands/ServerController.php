@@ -20,9 +20,24 @@ class ServerController extends Controller
         $ws_worker->onWorkerStart = function ($task) {
             // 2.5 seconds
             $time_interval = 15;
-
+            $timeBTC = true;
+            $timeUSDT = true;
+            $countBTC = 1;
+            $countUSDT = 1;
+            $input = time();
             $day = date('d');
-            $timer_id = Timer::add($time_interval, function () use ($day, $task) {
+            $timer_id = Timer::add($time_interval, function () use ($day, $task, $timeBTC,$timeUSDT, $countBTC, $countUSDT, $input) {
+                if($timeBTC) {
+                    $countBTC = 1;
+                }
+                if($timeUSDT) {
+                    $countUSDT = 1;
+                }
+                $time = false;
+                $timeUSDTBul = true;
+                $timeBTCBul = true;
+                $bulUSDT = true;
+                $bulBTC = true;
                 $price = 0;
                 $btc = 0;
                 $usdt = 0;
@@ -95,6 +110,7 @@ class ServerController extends Controller
                     }
                     foreach ($by as $key => $value) {
                         if ((float)$value < (float)$price - $countries[0]['plecho']) {
+                            $times = time() . '000';
                             $string = "symbol=BTCUSDT" . "&orderId=" . $origIdBy[$key] . "&recvWindow=600000" . "&timestamp=" . $times;
                             $hmacDigest = hash_hmac('sha256', $string, $countries[0]['secret']);
                             $url = "https://api.commex.com/api/v1/order?" . $string . "&signature=" . $hmacDigest;
@@ -104,6 +120,11 @@ class ServerController extends Controller
                                 ->setUrl($url)
                                 ->setHeaders(['Content-Type' => 'application/json', "X-MBX-APIKEY" => $countries[0]['api']])
                                 ->send();
+                            $countUSDT++;
+                            $bulUSDT = false;
+                            if($timeUSDTBul === true) {
+                                $timeUSDTBul = time() + 30*60;
+                            }
                         }
                     }
                     foreach ($sell as $key => $value) {
@@ -118,10 +139,19 @@ class ServerController extends Controller
                                 ->setUrl($url)
                                 ->setHeaders(['Content-Type' => 'application/json', "X-MBX-APIKEY" => $countries[0]['api']])
                                 ->send();
+                            $countBTC++;
+                            $bulBTC = false;
+                            if($timeBTCBul === true) {
+                                $timeBTCBul = time() + 30*60;
+                            }
                         }
                     }
+                    if($timeBTCBul !== true && time() >= $timeBTCBul) {
+                        $bulBTC = true;
+                        $timeBTCBul = true;
+                    }
                     if($this->info == 'sell') {
-                        if(count($sell) < $countries[0]['max'] && $btc*$price >= 11) {
+                        if(count($sell) < $countries[0]['max'] && $btc*$price >= 11 && $bulBTC) {
                             $in = true;
                             foreach ($sell as $key => $value) {
                                 if (abs((float)$value - (float)$countries[0]['intervals'] - $price) <= $countries[0]['new']) {
@@ -133,7 +163,7 @@ class ServerController extends Controller
                                 $string = "symbol=BTCUSDT" . "&side=SELL&type=LIMIT&timeInForce=GTC&quantity=0.00036&price=" . $price + $countries[0]['intervals'] . "&recvWindow=600000" . "&timestamp=" . $times;
                                 $hmacDigest = hash_hmac('sha256', $string, $countries[0]['secret']);
                                 $url = "https://api.commex.com/api/v1/order?" . $string . "&signature=" . $hmacDigest;
-                               $client->createRequest()
+                                $client->createRequest()
                                     ->setFormat(Client::FORMAT_JSON)
                                     ->setMethod('post')
                                     ->setUrl($url)
@@ -142,8 +172,12 @@ class ServerController extends Controller
                             }
                         }
                     }
+                    if($timeUSDTBul !== true && time() >= $timeUSDTBul) {
+                        $bulUSDT = true;
+                        $timeUSDTBul = true;
+                    }
                     if($this->info == 'buy') {
-                        if(count($by) < $countries[0]['max'] && $usdt >= 11) {
+                        if(count($by) < $countries[0]['max'] && $usdt >= 11 && $bulUSDT) {
                             $in = true;
                             foreach ($by as $key => $value) {
                                 if(abs($price - (float)$value - (float)$countries[0]['intervals'])  <=  $countries[0]['new']) {
