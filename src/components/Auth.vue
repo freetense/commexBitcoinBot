@@ -344,7 +344,6 @@ export default {
         _this.stopSave();
       }
 
-      //34F7937087745A2845986786134118CF74E2F0C2A71AEF0680870E3DB55C40D9
       if (!this.stop) {
         axios({
           method: 'get',
